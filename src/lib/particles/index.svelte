@@ -6,64 +6,35 @@
 
 	import GPUParticleSystem from './GPUParticleSystem';
 
-	const vertexShader = `uniform float time;
-        attribute vec3 velocity;
-        attribute vec3 acceleration;
-        void main() {
-            vec3 acc = acceleration * 0.5 * time * time;
-            vec3 vel = velocity * time;
-            gl_Position = projectionMatrix 
-                * modelViewMatrix
-                * vec4(acc + vel + position, 1.0);
-            gl_PointSize = 10.0;
-        }`;
-
-	const fragmentShader = `varying vec3 vColor;
-        void main() {
-        gl_FragColor = vec4(0,1.0,0,1.0);
-        }`;
-
-	export const max = 100;
-	const rand = (min, max) => min + Math.random() * (max - min);
-	
-    let mesh:THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial>;
-	let time = 0;
+	let particleSystem, options, spawnerOptions
 	
     function setupScene() {
-		const initialPositions = [];
-		const velocities = [];
-		const accelerations = [];
-		const geo = new THREE.BufferGeometry();
+        const textureLoader = new THREE.TextureLoader();
 		
-        for (let i = 0; i < max; i++) {
-			initialPositions.push(rand(-0.5, 0.5));
-			initialPositions.push(rand(-4, -3));
-			initialPositions.push(rand(-1, 1));
-			velocities.push(rand(-0.5, 0.5));
-			velocities.push(10.0);
-			velocities.push(rand(-1, 1));
-			accelerations.push(0);
-			accelerations.push(-9.8);
-			accelerations.push(0);
-		}
-		
-        geo.setAttribute('position', new THREE.Float32BufferAttribute(initialPositions, 3));
-		geo.setAttribute('velocity', new THREE.Float32BufferAttribute(velocities, 3));
-		geo.setAttribute('acceleration', new THREE.Float32BufferAttribute(accelerations, 3));
-		
-        const mat = new THREE.ShaderMaterial({
-			uniforms: {
-				time: { value: 12.0 }
-			},
-			vertexShader: vertexShader,
-			fragmentShader: fragmentShader,
-			blending: THREE.AdditiveBlending,
-			depthTest: false,
-			transparent: true,
-			vertexColors: true
-		});
-		mesh = new THREE.Points(geo, mat);
-		mesh.position.z = 0;
+        options = {
+            maxParticles: 10000,
+            position: new THREE.Vector3(0,0,0),
+            positionRandomness: 0.0,
+            baseVelocity: new THREE.Vector3(0.0, 0.0, 0),
+            velocity: new THREE.Vector3(0.0, 0.0, 0.0),
+            particleSpriteTex: textureLoader.load('./textures/particle2.png'),
+            velocityRandomness: 0.5,
+            acceleration: new THREE.Vector3(0,0,0),
+            baseColor: new THREE.Color(1.0,1.0,0.5),
+            color: new THREE.Color(1.0,0,0),
+            colorRandomness: 0.5,
+            lifetime: 1,
+            size: 10,
+            sizeRandomness: 1.0,
+            blending: THREE.AdditiveBlending,
+        }
+        
+        spawnerOptions = {
+            spawnRate: 5, // create at the rate of 500 particles/sec
+            timeScale: 1.0
+        };
+
+        particleSystem = new GPUParticleSystem(options)
 	}
 
 	onMount(() => {
@@ -72,16 +43,27 @@
 
  	const clock = new THREE.Clock();
 	SC.onFrame(() => {
-		let delta = clock.getDelta();
-		time += 1 * delta;
-        //console.log(time)
-		mesh.material.uniforms.time.value = time;
-		mesh.geometry.attributes.position.needsUpdate = true;
-		mesh.geometry.attributes.velocity.needsUpdate = true;
-		mesh.geometry.attributes.acceleration.needsUpdate = true;
+        const delta = clock.getDelta() * spawnerOptions.timeScale;
+        if ( delta > 0 ) {
+            //spawn the correct number of particles for this frame based on the spawn rate
+            for ( let x = 0; x < spawnerOptions.spawnRate * delta; x++ ) {
+                options.velocity.x = options.baseVelocity.x + particleSystem.random() * options.velocityRandomness
+                options.velocity.y = options.baseVelocity.y + particleSystem.random() * options.velocityRandomness
+                options.velocity.z = options.baseVelocity.z + particleSystem.random() * options.velocityRandomness
+                options.color.setRGB(
+                    THREE.MathUtils.clamp(options.baseColor.r+particleSystem.random()*options.colorRandomness,0,1),
+                    THREE.MathUtils.clamp(options.baseColor.g+particleSystem.random()*options.colorRandomness,0,1),
+                    THREE.MathUtils.clamp(options.baseColor.b+particleSystem.random()*options.colorRandomness,0,1),
+                )
+                particleSystem.spawnParticle( options );
+            }
+        }
+
+        particleSystem.update(clock.getElapsedTime());
+		
 	});
 </script>
 
-{#if mesh}
-	<SC.Primitive object={mesh} scale={[1, 1, 1]} />
+{#if particleSystem}
+	<SC.Primitive object={particleSystem} scale={[10, 10, 10]} />
 {/if}

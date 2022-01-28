@@ -80,14 +80,12 @@ const GPUParticleShader = {
             `
 };
 
-
 const UPDATEABLE_ATTRIBUTES = [
     'positionStart', 'startTime',
     'velocity', 'acceleration',
     'color', 'endColor',
     'size', 'lifeTime']
-
-export default class GPUParticleSystem extends THREE.Object3D {
+export default class GPUParticleSystem extends THREE.Object3D {    
     blending: THREE.Blending;
     PARTICLE_COUNT: number;
     PARTICLE_CURSOR: number;
@@ -106,6 +104,7 @@ export default class GPUParticleSystem extends THREE.Object3D {
     material: THREE.ShaderMaterial;
     geometry: THREE.BufferGeometry;
     particleSystem: THREE.Points;
+    particleSpriteTex: THREE.Texture;
 
     constructor(options) {
         super()
@@ -118,8 +117,8 @@ export default class GPUParticleSystem extends THREE.Object3D {
         this.count = 0;
         this.DPR = window.devicePixelRatio;
         this.particleUpdate = false;
-        this.onTick = options.onTick
-
+        this.onTick = options.onTick        
+        this.particleSpriteTex = options.particleSpriteTex,
         this.reverseTime = options.reverseTime
         this.fadeIn = options.fadeIn || 1
         if (this.fadeIn === 0) this.fadeIn = 0.001
@@ -177,18 +176,17 @@ export default class GPUParticleSystem extends THREE.Object3D {
         this.geometry = new THREE.BufferGeometry();
 
         //vec3 attributes
-        this.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT * 3), 3).setUsage(THREE.DynamicDrawUsage));
-        //this.geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT * 3), 3).setUsage(THREE.DynamicDrawUsage));
-        this.geometry.setAttribute('positionStart', new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT * 3), 3).setUsage(THREE.DynamicDrawUsage));
-        this.geometry.setAttribute('velocity', new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT * 3), 3).setUsage(THREE.DynamicDrawUsage));
-        this.geometry.setAttribute('acceleration', new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT * 3), 3).setUsage(THREE.DynamicDrawUsage));
-        this.geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT * 3), 3).setUsage(THREE.DynamicDrawUsage));
-        this.geometry.setAttribute('endColor', new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT * 3), 3).setUsage(THREE.DynamicDrawUsage));
+        this.geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT * 3), 3).setUsage(THREE.DynamicReadUsage));
+        this.geometry.setAttribute('positionStart', new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT * 3), 3).setUsage(THREE.DynamicReadUsage));
+        this.geometry.setAttribute('velocity', new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT * 3), 3).setUsage(THREE.DynamicReadUsage));
+        this.geometry.setAttribute('acceleration', new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT * 3), 3).setUsage(THREE.DynamicReadUsage));
+        this.geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT * 3), 3).setUsage(THREE.DynamicReadUsage));
+        this.geometry.setAttribute('endColor', new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT * 3), 3).setUsage(THREE.DynamicReadUsage));
 
         //scalar attributes
-        this.geometry.setAttribute('startTime', new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT), 1).setUsage(THREE.DynamicDrawUsage));
-        this.geometry.setAttribute('size', new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT), 1).setUsage(THREE.DynamicDrawUsage));
-        this.geometry.setAttribute('lifeTime', new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT), 1).setUsage(THREE.DynamicDrawUsage));
+        this.geometry.setAttribute('startTime', new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT), 1).setUsage(THREE.DynamicReadUsage));
+        this.geometry.setAttribute('size', new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT), 1).setUsage(THREE.DynamicReadUsage));
+        this.geometry.setAttribute('lifeTime', new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT), 1).setUsage(THREE.DynamicReadUsage));
 
 
         this.particleSystem = new THREE.Points(this.geometry, this.material);
@@ -196,18 +194,20 @@ export default class GPUParticleSystem extends THREE.Object3D {
         this.add(this.particleSystem);
     }
 
-    /*
-      This updates the geometry on the shader if at least one particle has been spawned.
-      It uses the offset and the count to determine which part of the data needs to actually
-      be sent to the GPU. This ensures no more data than necessary is sent.
-     */
-
+    
+    //wrote a type guard so that ts doesn't complain further down
     isBufferAttribute = (attribute: THREE.BufferAttribute | THREE.InterleavedBufferAttribute): attribute is THREE.BufferAttribute => {
         if ((attribute as THREE.BufferAttribute).updateRange !== undefined) {
             return true
         }
         return false
     }
+
+        /*
+      This updates the geometry on the shader if at least one particle has been spawned.
+      It uses the offset and the count to determine which part of the data needs to actually
+      be sent to the GPU. This ensures no more data than necessary is sent.
+     */
 
     geometryUpdate() {
         if (this.particleUpdate === true) {
@@ -223,7 +223,7 @@ export default class GPUParticleSystem extends THREE.Object3D {
                         attr.updateRange.count = -1
                     }
                 }
-                attr.needsUpdate = true
+                attr.needsUpdate = true;
             })
             this.offset = 0;
             this.count = 0;
@@ -237,7 +237,7 @@ export default class GPUParticleSystem extends THREE.Object3D {
     }
 
     update(ttime) {
-        this.time = ttime / 1000
+        this.time = ttime //nothing seemed to move so I removed a division by 1000 here
         this.material.uniforms.uTime.value = this.time;
         if (this.onTick) this.onTick(this, this.time)
         this.geometryUpdate();
@@ -291,39 +291,42 @@ export default class GPUParticleSystem extends THREE.Object3D {
         const i = this.PARTICLE_CURSOR
 
         // position
-        positionStartAttribute.setXYZ(i, position.x, position.y, position.z);
-        accelerationAttribute.setXYZ(i, acceleration.x, acceleration.y, acceleration.z);
-        colorAttribute.setXYZ(i, color.r, color.g, color.b);
-        endcolorAttribute.setXYZ(i, endColor.r, endColor.g, endColor.b);
-        velocityAttribute.setXYZ(i, velocity.x, velocity.y, velocity.z);
-        /*      positionStartAttribute.array[i * 3 + 0] = position.x
-     
-     
-             positionStartAttribute.array[i * 3 + 1] = position.y
-             positionStartAttribute.array[i * 3 + 2] = position.z
-     
-             velocityAttribute.array[i * 3 + 0] = velocity.x;
-             velocityAttribute.array[i * 3 + 1] = velocity.y;
-             velocityAttribute.array[i * 3 + 2] = velocity.z;
-     
-             accelerationAttribute.array[i * 3 + 0] = acceleration.x;
-             accelerationAttribute.array[i * 3 + 1] = acceleration.y;
-             accelerationAttribute.array[i * 3 + 2] = acceleration.z;
-     
-             colorAttribute.array[i * 3 + 0] = color.r;
-             colorAttribute.array[i * 3 + 1] = color.g;
-             colorAttribute.array[i * 3 + 2] = color.b;
-     
-             endcolorAttribute.array[i * 3 + 0] = endColor.r;
-             endcolorAttribute.array[i * 3 + 1] = endColor.g;
-             endcolorAttribute.array[i * 3 + 2] = endColor.b; */
+        positionStartAttribute.setXYZ(i*3, position.x, position.y, position.z);
+        accelerationAttribute.setXYZ(i*3, acceleration.x, acceleration.y, acceleration.z);
+        colorAttribute.setXYZ(i*3, color.r, color.g, color.b);
+        endcolorAttribute.setXYZ(i*3, endColor.r, endColor.g, endColor.b);
+        velocityAttribute.setXYZ(i*3, velocity.x, velocity.y, velocity.z);
+            
+        /* this array is readonly and it's rec'd to use setXYZ() instead ^^
+        ORIGINAL CODE:
+            positionStartAttribute.array[i * 3 + 0] = position.x     
+            positionStartAttribute.array[i * 3 + 1] = position.y
+            positionStartAttribute.array[i * 3 + 2] = position.z
+^
+            velocityAttribute.array[i * 3 + 0] = velocity.x;
+            velocityAttribute.array[i * 3 + 1] = velocity.y;
+            velocityAttribute.array[i * 3 + 2] = velocity.z;
+    
+            accelerationAttribute.array[i * 3 + 0] = acceleration.x;
+            accelerationAttribute.array[i * 3 + 1] = acceleration.y;
+            accelerationAttribute.array[i * 3 + 2] = acceleration.z;
+    
+            colorAttribute.array[i * 3 + 0] = color.r;
+            colorAttribute.array[i * 3 + 1] = color.g;
+            colorAttribute.array[i * 3 + 2] = color.b;
+    
+            endcolorAttribute.array[i * 3 + 0] = endColor.r;
+            endcolorAttribute.array[i * 3 + 1] = endColor.g;
+            endcolorAttribute.array[i * 3 + 2] = endColor.b; 
+            */
 
         //size, lifetime and starttime
+        //am i doing this right? setX?
         sizeAttribute.setX(i, size + this.random() * sizeRandomness);
         lifeTimeAttribute.setX(i, lifetime);
         startTimeAttribute.setX(i, this.time + this.random() * 2e-2);
 
-        /*
+        /* ORIGINAL CODE:
         sizeAttribute.array[i] = size + this.random() * sizeRandomness;
         lifeTimeAttribute.array[i] = lifetime;
         startTimeAttribute.array[i] = this.time + this.random() * 2e-2;
