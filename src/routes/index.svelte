@@ -3,16 +3,18 @@
 	import * as SC from 'svelte-cubed';
 	import Particles from '$lib/particles/index.svelte';
 
-	const spawnerOptions = {
-            spawnRate: 5000, // create at the rate of 500 particles/sec
-            timeScale: 1.0
-        };
+	$: spawnRate = 500;
+
+	SC.onFrame(()=>{
+		spawnRate += 1;
+		if (spawnRate > 10000) spawnRate=500;
+	})
 
 </script>
 
 <SC.Canvas antialias background={new THREE.Color('palevioletred')}>
 	<Particles 
-		 position={new THREE.Vector3(0,0,0)} {spawnerOptions}/>
+		 position={new THREE.Vector3(0,0,0)}  {spawnRate}/>
 	<SC.PerspectiveCamera position={[1, 1, 1]} />
 	<SC.OrbitControls enableZoom={true} />
 	<SC.AmbientLight intensity={0.6} />

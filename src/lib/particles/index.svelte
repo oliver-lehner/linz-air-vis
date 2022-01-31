@@ -5,11 +5,14 @@
 	import { onMount } from 'svelte';
 
 	import GPUParticleSystem from './GPUParticleSystem';
+import { MathUtils } from 'three';
 
-	let particleSystem, options, clock;
+	let particleSystem, clock;
+
+	let spin = 0;
 
 	export let maxParticles = 100000,
-		spawnRate= 5000,
+		spawnRate = 5000,
 		timeScale = 1.0,
 		position = new THREE.Vector3(0, 0, 0),
 		positionRandomness = 0.0,
@@ -26,35 +29,40 @@
 		sizeRandomness = 1.0,
 		blending = THREE.AdditiveBlending;
 
+	let options = {
+		maxParticles,
+		spawnRate,
+		timeScale,
+		position,
+		positionRandomness,
+		baseVelocity,
+		particleSpriteTex:undefined,
+		velocity,
+		velocityRandomness,
+		acceleration,
+		baseColor,
+		color,
+		colorRandomness,
+		lifetime,
+		size,
+		sizeRandomness,
+		blending
+	};
+
 	onMount(() => {
 		const textureLoader = new THREE.TextureLoader();
-		const particleSpriteTex = textureLoader.load(particleSpriteTexPath);
-		options = {
-			maxParticles,
-			spawnRate,
-			timeScale,
-			position,
-			positionRandomness,
-			baseVelocity,
-			velocity,
-			particleSpriteTex,
-			velocityRandomness,
-			acceleration,
-			baseColor,
-			color,
-			colorRandomness,
-			lifetime,
-			size,
-			sizeRandomness,
-			blending
-		};
-
+		options.particleSpriteTex = textureLoader.load(particleSpriteTexPath);
 		particleSystem = new GPUParticleSystem(options);
 		clock = new THREE.Clock();
 	});
 
 	SC.onFrame(() => {
 		const delta = clock.getDelta() * options.timeScale;
+		options.spawnRate = spawnRate;
+		//console.log(spawnRate%100)
+		if(spawnRate%100 == 0) options.color = new THREE.Color(MathUtils.randFloat(0,1), MathUtils.randFloat(0,1), MathUtils.randFloat(0,1))
+		//console.log(options.spawnRate);
+		spin += 0.01;
 		if (delta > 0) {
 			//spawn the correct number of particles for this frame based on the spawn rate
 			for (let x = 0; x < options.spawnRate * delta; x++) {
@@ -91,5 +99,5 @@
 </script>
 
 {#if particleSystem}
-	<SC.Primitive object={particleSystem} scale={[10, 10, 10]} />
+	<SC.Primitive object={particleSystem} scale={[10, 10, 10]} rotation={[spin, spin, spin]} />
 {/if}

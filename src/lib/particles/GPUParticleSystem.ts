@@ -109,6 +109,7 @@ export default class GPUParticleSystem extends THREE.Object3D {
     constructor(options) {
         super()
         options = options || {};
+        
         this.blending = options.blending ? options.blending : THREE.NormalBlending
         this.PARTICLE_COUNT = options.maxParticles || 1000000;
         this.PARTICLE_CURSOR = 0;
