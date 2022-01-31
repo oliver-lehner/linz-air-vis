@@ -290,53 +290,29 @@ export default class GPUParticleSystem extends THREE.Object3D {
 
         const i = this.PARTICLE_CURSOR
 
+
+        //I'm diverging from the tut's code here, because changing values in the attribute array
+        //is a no-no
+
         // position
         positionStartAttribute.setXYZ(i*3, position.x, position.y, position.z);
         accelerationAttribute.setXYZ(i*3, acceleration.x, acceleration.y, acceleration.z);
         colorAttribute.setXYZ(i*3, color.r, color.g, color.b);
         endcolorAttribute.setXYZ(i*3, endColor.r, endColor.g, endColor.b);
         velocityAttribute.setXYZ(i*3, velocity.x, velocity.y, velocity.z);
-            
-        /* this array is readonly and it's rec'd to use setXYZ() instead ^^
-        ORIGINAL CODE:
-            positionStartAttribute.array[i * 3 + 0] = position.x     
-            positionStartAttribute.array[i * 3 + 1] = position.y
-            positionStartAttribute.array[i * 3 + 2] = position.z
-^
-            velocityAttribute.array[i * 3 + 0] = velocity.x;
-            velocityAttribute.array[i * 3 + 1] = velocity.y;
-            velocityAttribute.array[i * 3 + 2] = velocity.z;
-    
-            accelerationAttribute.array[i * 3 + 0] = acceleration.x;
-            accelerationAttribute.array[i * 3 + 1] = acceleration.y;
-            accelerationAttribute.array[i * 3 + 2] = acceleration.z;
-    
-            colorAttribute.array[i * 3 + 0] = color.r;
-            colorAttribute.array[i * 3 + 1] = color.g;
-            colorAttribute.array[i * 3 + 2] = color.b;
-    
-            endcolorAttribute.array[i * 3 + 0] = endColor.r;
-            endcolorAttribute.array[i * 3 + 1] = endColor.g;
-            endcolorAttribute.array[i * 3 + 2] = endColor.b; 
-            */
 
         //size, lifetime and starttime
-        //am i doing this right? setX?
         sizeAttribute.setX(i, size + this.random() * sizeRandomness);
         lifeTimeAttribute.setX(i, lifetime);
         startTimeAttribute.setX(i, this.time + this.random() * 2e-2);
 
-        /* ORIGINAL CODE:
-        sizeAttribute.array[i] = size + this.random() * sizeRandomness;
-        lifeTimeAttribute.array[i] = lifetime;
-        startTimeAttribute.array[i] = this.time + this.random() * 2e-2;
-        */
-
         // offset
         if (this.offset === 0) this.offset = this.PARTICLE_CURSOR;
+        
         // counter and cursor
         this.count++;
         this.PARTICLE_CURSOR++;
+        
         //wrap the cursor around
         if (this.PARTICLE_CURSOR >= this.PARTICLE_COUNT) this.PARTICLE_CURSOR = 0;
         this.particleUpdate = true;
