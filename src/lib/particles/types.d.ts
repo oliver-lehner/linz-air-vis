@@ -1,0 +1,3 @@
+//to be in line with SC components I'd rather take arrays than THREE.Vectors as props
+//but unlike types in SC, I'm fine with a Vec3 type for pos, velocity, acc...
+export type Vec3 = [number, number, number]

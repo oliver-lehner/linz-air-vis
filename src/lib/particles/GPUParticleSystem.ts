@@ -80,6 +80,9 @@ const GPUParticleShader = {
             `
 };
 
+
+
+
 const UPDATEABLE_ATTRIBUTES = [
     'positionStart', 'startTime',
     'velocity', 'acceleration',
@@ -109,7 +112,6 @@ export default class GPUParticleSystem extends THREE.Object3D {
     constructor(options) {
         super()
         options = options || {};
-        
         this.blending = options.blending ? options.blending : THREE.NormalBlending
         this.PARTICLE_COUNT = options.maxParticles || 1000000;
         this.PARTICLE_CURSOR = 0;
@@ -277,9 +279,9 @@ export default class GPUParticleSystem extends THREE.Object3D {
 
         // setup reasonable default values for all arguments
 
-        position = options.position !== undefined ? position.copy(options.position) : position.set(0, 0, 0);
-        velocity = options.velocity !== undefined ? velocity.copy(options.velocity) : velocity.set(0, 0, 0);
-        acceleration = options.acceleration !== undefined ? acceleration.copy(options.acceleration) : acceleration.set(0, 0, 0);
+        position = options.position !== undefined ? position.set(options.position[0], options.position[1], options.position[2]) : position.set(0, 0, 0);
+        velocity = options.velocity !== undefined ? velocity.set(options.velocity[0], options.velocity[1], options.velocity[2]) : velocity.set(0, 0, 0);
+        acceleration = options.acceleration !== undefined ? acceleration.set(options.acceleration[0], options.acceleration[1], options.acceleration[2]) : acceleration.set(0, 0, 0);
         color = options.color !== undefined ? color.copy(options.color) : color.set(0xffffff);
         endColor = options.endColor !== undefined ? endColor.copy(options.endColor) : endColor.copy(color)
 
