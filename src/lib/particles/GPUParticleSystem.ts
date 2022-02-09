@@ -193,7 +193,7 @@ export default class GPUParticleSystem extends THREE.Object3D {
 
 
         this.particleSystem = new THREE.Points(this.geometry, this.material);
-        this.particleSystem.frustumCulled = false;
+        this.particleSystem.frustumCulled = true;
         this.add(this.particleSystem);
     }
 

@@ -2,6 +2,8 @@
 	import * as THREE from 'three';
 	import * as SC from 'svelte-cubed';
 	import Particles from '$lib/particles/index.svelte';
+	import Linz from '$lib/linz.svelte';
+	import {positions} from '$lib/luftibois'
 
 	let spawnRate = 0;
 
@@ -12,33 +14,25 @@
 	
 
 	$:color = new THREE.Color(`hsl(${h}, ${s}%, ${l}%)`);
-	$:console.log(color);
+	$:console.log($positions);
 	SC.onFrame(() => {
 
 	});
 </script>
 
-<SC.Canvas antialias background={new THREE.Color('black')}>
-	<Particles position={[0.5, 0.3, 1]} baseColor={color} endColor={new THREE.Color(1, 0, 0)} />
-	<Particles
-		reverseTime={true}
-		position={[1.5, 0.3, 1]}
-		baseColor={color}
-		endColor={new THREE.Color(0, 1, 0)}
-	/>
-	<Particles
-		{spawnRate}
-		lifetime={3}
-		maxParticles={20000}
-		position={[0.5, 1.3, 1]}
-		baseColor={color}
-		endColor={new THREE.Color(0, 0, 1)}
-	/>
-	<Particles position={[0.5, 0.3, 2]} baseColor={color} endColor={new THREE.Color(1, 1, 1)} />
-	<SC.PerspectiveCamera position={[1, 1, 10]} />
+<SC.Canvas antialias background={new THREE.Color('thistle')} fog={new THREE.FogExp2('ivory', 0.005)}>
+	<Particles particleSpriteTexPath='./textures/swirly.png' position={$positions.S184}/>
+	<Particles position={$positions.S184} reverseTime={false}/>
+	<Particles position={$positions.S415}/>
+	<Particles position={$positions.S416}/>
+	<Particles position={$positions.S431}/>
+	
+	<SC.PerspectiveCamera position={[0, 1, 2]} />
 	<SC.OrbitControls enableZoom={true} />
-	<SC.AmbientLight intensity={0.6} />
-	<SC.DirectionalLight intensity={0.6} position={[-2, 3, 2]} />
+	<SC.AmbientLight intensity={0.3} />
+	<SC.PointLight intensity={5.3} position={[0,0.5,0]}/>
+	<SC.DirectionalLight intensity={8.6} position={[0.3, 2.1, 0.5]}/>
+	<Linz position={[0,0,0]}/>
 </SC.Canvas>
 <div class="controls">
 	<input type="range" min="0" max="1000" bind:value={spawnRate} id="spawn-rate" />

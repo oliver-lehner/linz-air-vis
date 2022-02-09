@@ -11,22 +11,22 @@
 	let invalidate = SC.getInvalidator();
 
 	export let maxParticles = 600,
-		position:Vec3 = [0, 0, 0],
+		position:Vec3 = [0,0,0],
 		spawnRate = 50,
 		timeScale = 1.0,
-		reverseTime = false,
+		reverseTime = true,
 		positionRandomness = 0.0,
-		baseVelocity:Vec3= [0.0, 0.1, 0],
+		baseVelocity:Vec3= [-0.1, 0.05, 0],
 		particleSpriteTexPath = './textures/particle2.png',
-		velocityRandomness = 0.2,
+		velocityRandomness = 0.05,
 		acceleration:Vec3 = [0, 0, 0],
 		baseColor = new THREE.Color(1.0, 0.0, 0.0),
 		endColor = new THREE.Color(0.5, 1.0, 1.0),
 		colorRandomness = 0.0,
 		lifetime = 3,
-		size = 10,
+		size = 5,
 		sizeRandomness = 1.0,
-		blending = THREE.AdditiveBlending;
+		blending = THREE.NormalBlending;
 
 	let velocity:Vec3 = [0.0, 0.0, 0],
 		color = new THREE.Color(1.0, 0, 0);
@@ -101,5 +101,5 @@
 </script>
 
 {#if particleSystem}
-	<SC.Primitive object={particleSystem} />
+	<SC.Primitive object={particleSystem}/>
 {/if}
