@@ -30,7 +30,7 @@
   },
   "type": "module",
   "dependencies": {
-    "svelte-cubed": "^0.2.1",
-    "three": "^0.137.0"
+    "three": "^0.137.0",
+    "threlte": "^2.2.0"
   }
 }
