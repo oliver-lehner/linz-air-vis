@@ -30,6 +30,7 @@
   },
   "type": "module",
   "dependencies": {
+    "ioredis": "^4.28.5",
     "three": "^0.137.0",
     "threlte": "^2.2.0"
   }

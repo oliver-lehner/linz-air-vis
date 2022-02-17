@@ -7,6 +7,29 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		%svelte.head%
 	</head>
+	<style>
+
+	:root {
+  --yellow: #FFFDE5;
+  --dark-gray: #2A2E33;
+	--green: #AAFFA7;
+}
+
+	body{
+	margin:0;
+	}
+
+	@font-face {
+  font-family:"AzeretMono";
+  src: url(./fonts/AzeretMono-VariableFont_wght.ttf) format("truetype");
+}
+
+
+	
+	html * {
+		font-family: 'AzeretMono', monospace;
+	}
+	</style>
 	<body>
 		<div id="svelte">%svelte.body%</div>
 	</body>

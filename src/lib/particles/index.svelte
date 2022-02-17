@@ -5,27 +5,27 @@
 	import { useFrame } from 'threlte';
 
 	import GPUParticleSystem from './GPUParticleSystem';
-	import { Clock, Color, MathUtils, NormalBlending, TextureLoader, Vector3 } from 'three';
+	import { AdditiveBlending, Clock, Color, MathUtils, NormalBlending, TextureLoader, Vector3 } from 'three';
 
 	let particleSystem, clock;
 
 	export let maxParticles = 600,
 		position: Position = { x: 0, y: 0, z: 0 },
 		spawnRate = 50,
-		timeScale = 1.0,
+		timeScale = 1,
 		reverseTime = true,
-		positionRandomness = 0.0,
+		positionRandomness = 0.1,
 		baseVelocity = new Vector3(-0.1, 0.05, 0),
 		particleSpriteTexPath = './textures/particle2.png',
-		velocityRandomness = 0.05,
+		velocityRandomness = 0.00,
 		acceleration = new Vector3(0, 0, 0),
 		baseColor = new Color(1.0, 0.0, 0.0),
-		endColor = new Color(0.5, 1.0, 1.0),
+		endColor = new Color(0, 0, 0),
 		colorRandomness = 0.0,
 		lifetime = 3,
-		size = 5,
+		size = 30,
 		sizeRandomness = 1.0,
-		blending = NormalBlending;
+		blending = AdditiveBlending;
 
 	let velocity = new Vector3(0.0, 0.0, 0),
 		color = new Color(1.0, 0, 0);
@@ -61,8 +61,7 @@
 
 	useFrame(() => {
 		const delta = clock.getDelta() * options.timeScale;
-		//console.log(spawnRate%100)
-		//console.log(options.spawnRate);
+
 		if (delta > 0) {
 			//spawn the correct number of particles for this frame based on the spawn rate
 			for (let x = 0; x < options.spawnRate * delta; x++) {
