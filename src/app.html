@@ -8,27 +8,24 @@
 		%svelte.head%
 	</head>
 	<style>
+		:root {
+			--yellow: #fffde5;
+			--dark-gray: #2a2e33;
+			--green: #aaffa7;
+		}
 
-	:root {
-  --yellow: #FFFDE5;
-  --dark-gray: #2A2E33;
-	--green: #AAFFA7;
-}
+		body {
+			margin: 0;
+		}
 
-	body{
-	margin:0;
-	}
+		@font-face {
+			font-family: 'AzeretMono';
+			src: url(./fonts/AzeretMono-VariableFont_wght.ttf) format('truetype');
+		}
 
-	@font-face {
-  font-family:"AzeretMono";
-  src: url(./fonts/AzeretMono-VariableFont_wght.ttf) format("truetype");
-}
-
-
-	
-	html * {
-		font-family: 'AzeretMono', monospace;
-	}
+		html * {
+			font-family: 'AzeretMono', monospace;
+		}
 	</style>
 	<body>
 		<div id="svelte">%svelte.body%</div>

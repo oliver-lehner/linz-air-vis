@@ -2,78 +2,78 @@ import * as THREE from 'three';
 
 const GPUParticleShader = {
 	vertexShader: `
-                uniform float uTime;
-                uniform float uScale;
-                uniform bool reverseTime;
-                uniform float fadeIn;
-                uniform float fadeOut;
-    
-                attribute vec3 positionStart;
-                attribute float startTime;
-                attribute vec3 velocity;
-                attribute vec3 acceleration;
-                attribute vec3 color;
-                attribute vec3 endColor;
-                attribute float size;
-                attribute float lifeTime;
-    
-                varying vec4 vColor;
-                varying vec4 vEndColor;
-                varying float lifeLeft;
-                varying float alpha;
-    
-                void main() {
-                    vColor = vec4( color, 1.0 );
-                    vEndColor = vec4( endColor, 1.0);
-                    vec3 newPosition;
-                    float timeElapsed = uTime - startTime;
-                    if(reverseTime) timeElapsed = lifeTime - timeElapsed;
-                    if(timeElapsed < fadeIn) {
-                        alpha = timeElapsed/fadeIn;
-                    }
-                    if(timeElapsed >= fadeIn && timeElapsed <= (lifeTime - fadeOut)) {
-                        alpha = 1.0;
-                    }
-                    if(timeElapsed > (lifeTime - fadeOut)) {
-                        alpha = 1.0 - (timeElapsed - (lifeTime-fadeOut))/fadeOut;
-                    }
-                    
-                    lifeLeft = 1.0 - ( timeElapsed / lifeTime );
-                    gl_PointSize = ( uScale * size ) * lifeLeft;
-                    newPosition = positionStart 
-                        + (velocity * timeElapsed)
-                        + (acceleration * 0.5 * timeElapsed * timeElapsed)
-                        ;
-                    if (lifeLeft < 0.0) { 
-                        lifeLeft = 0.0; 
-                        gl_PointSize = 0.;
-                    }
-                    //while active use the new position
-                    if( timeElapsed > 0.0 ) {
-                        gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
-                    } else {
-                        //if dead use the initial position and set point size to 0
-                        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-                        lifeLeft = 0.0;
-                        gl_PointSize = 0.;
-                    }
-                }
-                `,
+        uniform float uTime;
+        uniform float uScale;
+        uniform bool reverseTime;
+        uniform float fadeIn;
+        uniform float fadeOut;
+
+        attribute vec3 positionStart;
+        attribute float startTime;
+        attribute vec3 velocity;
+        attribute vec3 acceleration;
+        attribute vec3 color;
+        attribute vec3 endColor;
+        attribute float size;
+        attribute float lifeTime;
+
+        varying vec4 vColor;
+        varying vec4 vEndColor;
+        varying float lifeLeft;
+        varying float alpha;
+
+        void main() {
+            vColor = vec4( color, 1.0 );
+            vEndColor = vec4( endColor, 1.0);
+            vec3 newPosition;
+            float timeElapsed = uTime - startTime;
+            if(reverseTime) timeElapsed = lifeTime - timeElapsed;
+            if(timeElapsed < fadeIn) {
+                alpha = timeElapsed/fadeIn;
+            }
+            if(timeElapsed >= fadeIn && timeElapsed <= (lifeTime - fadeOut)) {
+                alpha = 1.0;
+            }
+            if(timeElapsed > (lifeTime - fadeOut)) {
+                alpha = 1.0 - (timeElapsed - (lifeTime-fadeOut))/fadeOut;
+            }
+            
+            lifeLeft = 1.0 - ( timeElapsed / lifeTime );
+            gl_PointSize = ( uScale * size ) * lifeLeft;
+            newPosition = positionStart 
+                + (velocity * timeElapsed)
+                + (acceleration * 0.5 * timeElapsed * timeElapsed)
+                ;
+            if (lifeLeft < 0.0) { 
+                lifeLeft = 0.0; 
+                gl_PointSize = 0.;
+            }
+            //while active use the new position
+            if( timeElapsed > 0.0 ) {
+                gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
+            } else {
+                //if dead use the initial position and set point size to 0
+                gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+                lifeLeft = 0.0;
+                gl_PointSize = 0.;
+            }
+        }
+        `,
 	fragmentShader: `
-                varying vec4 vColor;
-                varying vec4 vEndColor;
-                varying float lifeLeft;
-                varying float alpha;
-                uniform sampler2D tSprite;
-                void main() {
-                    // color based on particle texture and the lifeLeft. 
-                    // if lifeLeft is 0 then make invisible
-                    vec4 tex = texture2D( tSprite, gl_PointCoord );
-                    vec4 color = mix(vColor, vEndColor, 1.0-lifeLeft);
-                    gl_FragColor = vec4( color.rgb*tex.rgb, alpha * tex.a);
-                }
-    
-            `
+        varying vec4 vColor;
+        varying vec4 vEndColor;
+        varying float lifeLeft;
+        varying float alpha;
+        uniform sampler2D tSprite;
+        void main() {
+            // color based on particle texture and the lifeLeft. 
+            // if lifeLeft is 0 then make invisible
+            vec4 tex = texture2D( tSprite, gl_PointCoord );
+            vec4 color = mix(vColor, vEndColor, 1.0-lifeLeft);
+            gl_FragColor = vec4( color.rgb*tex.rgb, alpha * tex.a);
+        }
+
+    `
 };
 
 const UPDATEABLE_ATTRIBUTES = [
@@ -233,7 +233,7 @@ export default class GPUParticleSystem extends THREE.Object3D {
 		);
 
 		this.particleSystem = new THREE.Points(this.geometry, this.material);
-		this.particleSystem.frustumCulled = true;
+		this.particleSystem.frustumCulled = false;
 		this.add(this.particleSystem);
 	}
 
@@ -326,7 +326,7 @@ export default class GPUParticleSystem extends THREE.Object3D {
 			options.acceleration !== undefined
 				? acceleration.copy(options.acceleration)
 				: acceleration.set(0, 0, 0);
-		color = options.color !== undefined ? color.copy(options.color) : color.set(0xffffff);
+		color = options.baseColor !== undefined ? color.copy(options.baseColor) : color.set(0xffffff);
 		endColor =
 			options.endColor !== undefined ? endColor.copy(options.endColor) : endColor.copy(color);
 
@@ -335,6 +335,8 @@ export default class GPUParticleSystem extends THREE.Object3D {
 		const sizeRandomness = options.sizeRandomness !== undefined ? options.sizeRandomness : 0;
 		const positionRandomness =
 			options.positionRandomness !== undefined ? options.positionRandomness : 0;
+		const velocityRandomness =
+			options.velocityRandomness !== undefined ? options.velocityRandomness : 0;
 
 		if (this.DPR !== undefined) size *= this.DPR;
 
@@ -345,15 +347,15 @@ export default class GPUParticleSystem extends THREE.Object3D {
 
 		// position
 		positionStartAttribute.setXYZ(
-			i * 3,
+			i,
 			position.x + this.random() * positionRandomness,
 			position.y,
 			position.z + this.random() * positionRandomness
 		);
-		accelerationAttribute.setXYZ(i * 3, acceleration.x, acceleration.y, acceleration.z);
-		colorAttribute.setXYZ(i * 3, color.r, color.g, color.b);
-		endcolorAttribute.setXYZ(i * 3, endColor.r, endColor.g, endColor.b);
-		velocityAttribute.setXYZ(i * 3, velocity.x, velocity.y, velocity.z);
+		accelerationAttribute.setXYZ(i, acceleration.x, acceleration.y, acceleration.z);
+		colorAttribute.setXYZ(i, color.r, color.g, color.b);
+		endcolorAttribute.setXYZ(i, endColor.r, endColor.g, endColor.b);
+		velocityAttribute.setXYZ(i, velocity.x, velocity.y + this.random() * velocityRandomness, velocity.z);
 
 		//size, lifetime and starttime
 		sizeAttribute.setX(i, size + this.random() * sizeRandomness);

@@ -20,107 +20,164 @@
 </script>
 
 <script lang="ts">
-	import * as THREE from 'three';
-
 	import {
 		Canvas,
 		PerspectiveCamera,
 		OrbitControls,
 		DirectionalLight,
-		HemisphereLight,
+		PointLight,
 		Mesh,
 		GLTF,
-		Position,
-		Rotation
+		useFrame,
+		useThrelte,
+		HemisphereLight,
+		Fog,
+		FogExp2
 	} from 'threlte';
 
-	import {
-		getLuftiPositions,
-		boxGeometryFromBoundingBox,
-		vectorFromDegreesAndVelocity
-	} from '$lib/utils';
 	import Particles from '$lib/particles/index.svelte';
 
-	import { MeshStandardMaterial, Box3, BoxBufferGeometry, Vector3, MathUtils, Color } from 'three';
-	import { spring } from 'svelte/motion';
+	import {
+		MeshStandardMaterial,
+		Color,
+		AnimationClip,
+		AnimationMixer,
+		Clock,
+		TextureLoader
+	} from 'three';
+	import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
+
 	import Dashboard from '$lib/dashboard.svelte';
+	import {
+		getLuftiPositions,
+		vectorFromDegreesAndVelocity,
+		boxGeometryFromBoundingBox,
+		getLatest,
+		calcSeverity,
+		setCamera
+	} from '$lib/utils';
+
+	import { camPos, poi } from '$lib/stores';
+
+	import { componentColors } from '$lib/constants';
+	import { onDestroy, onMount } from 'svelte';
 
 	export let data: AirData;
+	const clock = new Clock();
 
-	let map: GLTF;
+	let handle;
+	const tick = () => {
+		mixer.update(clock.getDelta());
+		handle = requestAnimationFrame(tick);
+	};
+	onDestroy(() => {
+		if (handle) cancelAnimationFrame(handle);
+	});
+
+	let map: GLTF, animations: AnimationClip[], mixer: AnimationMixer;
 	let stationGeometry: LuftiData = <LuftiData>{};
 
-	const poi = spring({ x: 0, y: 0, z: 0 }, { stiffness: 0.4, damping: 0.6 });
-	const camPos = spring({ x: 0, y: 2, z: 5 });
-	const particleColors = {
-		PM10kont: new Color(0, 255, 0),
-		PM25kont: new Color(0, 200, 200),
-		SO2: new Color(255, 0, 0),
-		NO2: new Color(200, 0, 200),
-		O3: new Color(200, 100, 100)
+	/* 	
+	VR!?
+	const { renderer,scene,camera } = useThrelte();
+	document.body.appendChild( VRButton.createButton( renderer ) );
+	renderer.xr.enabled = true;
+
+	renderer.setAnimationLoop(()=>{renderer.render(scene,$camera)}) 
+	*/
+
+	const particleAppearance = {
+		PM10: { color: new Color(componentColors.PM10), size: 100 },
+		PM25: { color: new Color(componentColors.PM25), size: 25 },
+		SO2: { color: new Color(componentColors.SO2), size: 15 },
+		NO2: { color: new Color(componentColors.NO2), size: 15 },
+		O3: { color: new Color(componentColors.O3), size: 15 }
 	};
 
 	function handleModelLoad(e) {
 		const model = e.detail;
 		stationGeometry = getLuftiPositions(model);
 		map = model;
+		mixer = new AnimationMixer(model.scene);
+		//tick();
 	}
 </script>
 
 <div class="container">
-	<Dashboard {data} />
+	<Dashboard {data} data3D={stationGeometry} />
 	<Canvas>
-		<GLTF url={'./lufti_scene.glb'} on:load={handleModelLoad} />
+		<GLTF url={'./lufti_scene.glb'} on:load={handleModelLoad} bind:animations />
 
 		{#if Object.keys(stationGeometry).length > 0}
-			{#each Object.entries(stationGeometry) as [key, value]}
+<!-- 			{#each Object.entries(stationGeometry) as [key, value]}
 				<Mesh
 					geometry={boxGeometryFromBoundingBox(value.boundingBox)}
-					material={new MeshStandardMaterial({ color: '#ff3e00' })}
+					material={new MeshStandardMaterial({ color: 'transparent' })}
 					position={value.position}
 					scale={value.scale}
 					rotation={value.rotation}
 					visible={false}
 					interactive={true}
 					on:pointerdown={() => {
-						let index = map.scene.children.findIndex((val) => val.name == key);
-						let stationPosition = map.scene.children[index].position;
-						poi.set(stationPosition);
-						camPos.set({
-							x: stationPosition.x,
-							y: stationPosition.y + 0.2,
-							z: stationPosition.z + 0.4
+						console.log();
+						animations.forEach(function (clip) {
+							console.log(clip.name);
+							mixer.clipAction(clip).play();
 						});
+						setCamera(value.position);
 					}}
+				/>
+				<PointLight
+					intensity={0.3}
+					position={{ x: value.position.x, y: value.position.y - 0.1, z: value.position.z }}
+					color={'white'}
 				/>
 				{#each Object.entries(data[key]) as [componentKey, componentValue], index}
 					{#if componentKey != 'WIV' && componentKey != 'WIR' && componentValue.hmw.length > 0}
-						{console.log(componentValue.hmw[0].value)}
 						<Particles
-							baseColor={particleColors[componentKey]}
-							endColor={particleColors[componentKey]}
+							baseColor={particleAppearance[componentKey].color}
+							size={particleAppearance[componentKey].size}
+							maxParticles={calcSeverity(componentKey, getLatest(componentValue.hmw).value)}
 							particleSpriteTexPath="./textures/swirly.png"
 							position={{
 								x: value.position.x,
-								y: value.position.y + index * 0.02,
+								y: value.position.y + index * 0.1,
 								z: value.position.z
 							}}
 							baseVelocity={vectorFromDegreesAndVelocity(
-								data[key]['WIR'].hmw[0].value,
-								data[key]['WIV'].hmw[0].value
+								getLatest(data[key]['WIR'].hmw).value,
+								getLatest(data[key]['WIV'].hmw).value
 							)}
-							spawnRate={componentValue.hmw[0].value}
+							spawnRate={0.000000001}
 						/>
 					{/if}
+
 				{/each}
-			{/each}
+				
+			{/each} -->
+									<Particles
+							baseColor={particleAppearance['PM25'].color}
+							size={particleAppearance['PM25'].size}
+							maxParticles={calcSeverity('PM25', getLatest(data['S415']['PM25'].hmw).value)}
+							particleSpriteTexPath="./textures/swirly.png"
+							position={{
+								x: stationGeometry.S415.position.x,
+								y: stationGeometry.S415.position.y + 0.1,
+								z: stationGeometry.S415.position.z
+							}}
+							baseVelocity={vectorFromDegreesAndVelocity(
+								getLatest(data['S415']['WIR'].hmw).value,
+								getLatest(data['S415']['WIV'].hmw).value
+							)}
+							spawnRate={0.000000001}
+						/>
 		{/if}
 
 		<PerspectiveCamera position={$camPos} lookAt={$poi}>
 			<OrbitControls />
 		</PerspectiveCamera>
 
-		<DirectionalLight shadow color={'white'} position={{ x: -15, y: 45, z: 20 }} />
+		<DirectionalLight intensity={0.4} color={'white'} position={{ x: -5, y: 5, z: -5 }} />
 		<HemisphereLight skyColor={'white'} groundColor={'#ac844c'} intensity={0.4} />
 	</Canvas>
 </div>

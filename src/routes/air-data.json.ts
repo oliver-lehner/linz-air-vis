@@ -19,7 +19,7 @@ export const get: RequestHandler = async function () {
 		const consolidatedData = consolidate(result);
 		await cacheStationData(consolidatedData);
 		return {
-			body: { consolidatedData }
+			body: { data: consolidatedData }
 		};
 	} catch {
 		throw Error('Promise failed');
@@ -99,7 +99,7 @@ function extract(values): StationData {
 			const tmw = reduceSamples(componentData, 'TMW');
 			const hmw = reduceSamples(componentData, 'HMW');
 			const mw24 = reduceSamples(componentData, 'MW24');
-			data[component] = { unit, hmw, tmw, mw24 };
+			data[component.substring(0,4)] = { unit, hmw, tmw, mw24 };
 		}
 	});
 	return data;

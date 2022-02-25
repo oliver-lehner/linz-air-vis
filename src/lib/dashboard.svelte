@@ -1,5 +1,11 @@
 <script lang="ts">
+	import Compass from '$lib/compass.svelte';
+  import {getLatest, setCamera} from '$lib/utils';
+	import {componentColors} from '$lib/constants';
+
+
 	export let data: AirData;
+	export let data3D:LuftiData;
 
 	const stationNames = {
 		S415: '24er-Turm',
@@ -10,57 +16,80 @@
 </script>
 
 <div class="container">
+	{#if data}
 	{#each Object.entries(data) as [stationKey, stationValues]}
-  <div class="cell">
-		<h2>{stationNames[stationKey]}</h2>
-    <div class="components">
-    {#each Object.entries(stationValues) as [componentKey, componentValues]}
-      {#if componentKey != 'WIR' && componentKey != 'WIV'}
-      <div>
-        <p>{componentKey}</p>
-        {#if componentValues.hmw[0]}
-        <p>{componentValues.hmw[0].value.toFixed(2)}</p>
-        <p>{componentValues.unit}</p>
-        {/if}
-      </div>
-      {/if}
-    {/each}
-    </div>
-  </div>
+		<div class="cell">
+			<h2 on:click={()=>setCamera(data3D[stationKey].position)}>{stationNames[stationKey]}</h2>
+      <p></p>
+			<div class="components">
+				{#each Object.entries(stationValues) as [componentKey, componentValues]}
+					{#if componentKey != 'WIR' && componentKey != 'WIV' && componentValues.hmw.length > 0}
+						<div style={`background-color: ${componentColors[componentKey]}`}>
+							<p>{componentKey}</p>
+								<p>{getLatest(componentValues.hmw).value.toFixed(2)}</p>
+						</div>
+					{/if}
+				{/each}
+				<div class="compass-container">
+					<Compass orientation={getLatest(stationValues.WIR.hmw).value} />
+          <p>{((getLatest(stationValues.WIV.hmw).value)*3.6).toFixed(1)+' km/h'}</p>
+				</div>
+			</div>
+		</div>
 	{/each}
+	{/if}
 </div>
 
 <style>
 	.container {
 		position: absolute;
-		width: 100%;
+		box-sizing: border-box;
+		width:100%;
+		padding: 0.5em;
 		background: var(--dark-gray);
-    border: 2px solid var(--green);
+		border: 2px solid var(--green);
 		display: grid;
 		grid-template-columns: 50% 50%;
+		gap: 0.5em;
 	}
 
-  .container h2, p {
-    color: var(--yellow)
-  }
+	.container h2,
+	p {
+		color: var(--yellow);
+	}
 
 	h2 {
+		margin: 0 0 0.5em 0;
 		font-weight: 600;
-    font-size: 1.2em;
+		font-size: 1.2em;
 	}
 
-  .components {
-    display:flex;
-    flex-direction: row;
-    gap: 0.2em;
-  }
+	.components {
+		display: flex;
+		flex-direction: row;
+		gap: 0.2em;
+	}
 
-  .components p {
-    font-size:0.6em;
-    text-align: center;
-  }
+	.components p {
+		font-size: 0.6em;
+		text-align: center;
+	}
 
-  .components > div {
-    overflow: hidden;
-  }
+	.components > div {
+		overflow: hidden;
+		border-radius: 0.1em;
+		padding: 0 0.2em;
+	}
+
+	.compass-container {
+		display:flex;
+		flex-direction: row;
+		align-items: center;
+		width:4em;
+	}
+
+	.compass-container > p {
+		text-align: left;
+		padding-left:0.5em;
+	}
 </style>
