@@ -1,25 +1,18 @@
 <script lang="ts">
 	import Compass from '$lib/compass.svelte';
-  import {getLatest, setCamera} from '$lib/utils';
-	import {componentColors} from '$lib/constants';
-
+  import {getLatest} from '$lib/utils';
+	import {componentColors, stationNames} from '$lib/constants';
+	import {currentStation} from '$lib/stores'
 
 	export let data: AirData;
-	export let data3D:LuftiData;
 
-	const stationNames = {
-		S415: '24er-Turm',
-		S416: 'Neue Welt',
-		S431: 'Römerberg',
-		S184: 'Stadtpark'
-	};
 </script>
 
 <div class="container">
 	{#if data}
 	{#each Object.entries(data) as [stationKey, stationValues]}
 		<div class="cell">
-			<h2 on:click={()=>setCamera(data3D[stationKey].position)}>{stationNames[stationKey]}</h2>
+			<h2 on:click={()=>$currentStation = stationKey}>{stationNames[stationKey]}</h2>
       <p></p>
 			<div class="components">
 				{#each Object.entries(stationValues) as [componentKey, componentValues]}

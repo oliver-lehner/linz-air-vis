@@ -3,7 +3,7 @@ import { Vector3, BoxBufferGeometry, Matrix4 } from 'three';
 import { scaleLog, scaleLinear } from 'd3';
 import type { GLTF } from 'threlte';
 
-import { poi, camPos } from '$lib/stores';
+import { targets } from '$lib/constants';
 
 export function getLuftiPositions(model: GLTF): LuftiData {
 	let stationGeometry: LuftiData = <LuftiData>{};
@@ -34,65 +34,23 @@ export function boxGeometryFromBoundingBox(boundingBox: Box3): BoxBufferGeometry
 
 export function vectorFromDegreesAndVelocity(deg: number, v: number, multiplier?: number): Vector3 {
 	const rad = MathUtils.degToRad(deg);
-	const x = Math.sin(rad);
-	const y = Math.cos(rad);
+	const x = Math.cos(rad);
+	const y = Math.sin(rad);
 	let calcDeg = MathUtils.radToDeg(Math.atan2(x, y));
 	const vec = new Vector3(x, 0, y);
 	console.log(deg, vec, calcDeg);
-	return vec.multiplyScalar(v * (multiplier < 0 ? multiplier : 0.1));
+	return vec.multiplyScalar(v * (multiplier > 0 ? multiplier : 0.1));
 }
 
-export function getLatest(array:Measurement[]):Measurement {
+export function getLatest(array: Measurement[]): Measurement {
 	return array[array.length - 1];
 }
 
-/* 
-
-
-*/
 
 export function calcSeverity(component: string, value: number): number {
-	const targets = {
-		//Table 3.6 p.88
-		PM25: {
-			interimTargets: [75, 50, 37.5, 25, 15],
-			AQG: 15
-		},
-		//Table 3.9 p.97
-		PM10: {
-			interimTargets: [150, 100, 75, 50, 45],
-			AQG: 15
-		},
-		//Table 3.15 p.110
-		O3: {
-			interimTargets: [160, 120],
-			AQG: 100
-		},
-		//Table 3.21 p.124
-		NO2: {
-			interimTargets: [120, 50],
-			AQG: 25
-		},
-		//Table 3.22 p.130
-		SO2: {
-			interimTargets: [125, 50],
-			AQG: 40
-		}
-	};
-
 	const { interimTargets, AQG } = targets[component];
-	const severity = scaleLog()
-		.domain([0.01, AQG, interimTargets[0]])
-		.range([0, 500, 2000]);
-	console.log(component, severity(value));
+	const severity = scaleLog().domain([0.01, AQG, interimTargets[0]]).range([0, 100, 2000]);
+	//console.log(component, severity(value));
 	return severity(value);
 }
 
-export function setCamera(pos) {
-	poi.set(pos);
-	camPos.set({
-		x: pos.x + 2,
-		y: pos.y + 2,
-		z: pos.z + 2
-	});
-}

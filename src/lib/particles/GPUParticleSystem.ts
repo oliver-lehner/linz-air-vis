@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Euler } from 'three';
 
 const GPUParticleShader = {
 	vertexShader: `
@@ -373,4 +374,5 @@ export default class GPUParticleSystem extends THREE.Object3D {
 		if (this.PARTICLE_CURSOR >= this.PARTICLE_COUNT) this.PARTICLE_CURSOR = 0;
 		this.particleUpdate = true;
 	}
+
 }
