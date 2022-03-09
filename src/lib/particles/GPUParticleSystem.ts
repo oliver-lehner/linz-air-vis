@@ -40,11 +40,13 @@ const GPUParticleShader = {
             }
             
             lifeLeft = 1.0 - ( timeElapsed / lifeTime );
-            gl_PointSize = ( uScale * size ) * lifeLeft;
+						gl_PointSize = ( uScale * size );
+            //gl_PointSize = ( uScale * size ) * lifeLeft;
             newPosition = positionStart 
                 + (velocity * timeElapsed)
                 + (acceleration * 0.5 * timeElapsed * timeElapsed)
                 ;
+						newPosition = newPosition*vec3(1,1.f+(sin(uTime)*0.1),1);
             if (lifeLeft < 0.0) { 
                 lifeLeft = 0.0; 
                 gl_PointSize = 0.;
@@ -179,37 +181,37 @@ export default class GPUParticleSystem extends THREE.Object3D {
 		this.geometry.setAttribute(
 			'position',
 			new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT * 3), 3).setUsage(
-				THREE.DynamicReadUsage
+				THREE.DynamicDrawUsage
 			)
 		);
 		this.geometry.setAttribute(
 			'positionStart',
 			new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT * 3), 3).setUsage(
-				THREE.DynamicReadUsage
+				THREE.DynamicDrawUsage
 			)
 		);
 		this.geometry.setAttribute(
 			'velocity',
 			new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT * 3), 3).setUsage(
-				THREE.DynamicReadUsage
+				THREE.DynamicDrawUsage
 			)
 		);
 		this.geometry.setAttribute(
 			'acceleration',
 			new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT * 3), 3).setUsage(
-				THREE.DynamicReadUsage
+				THREE.DynamicDrawUsage
 			)
 		);
 		this.geometry.setAttribute(
 			'color',
 			new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT * 3), 3).setUsage(
-				THREE.DynamicReadUsage
+				THREE.DynamicDrawUsage
 			)
 		);
 		this.geometry.setAttribute(
 			'endColor',
 			new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT * 3), 3).setUsage(
-				THREE.DynamicReadUsage
+				THREE.DynamicDrawUsage
 			)
 		);
 
@@ -217,19 +219,19 @@ export default class GPUParticleSystem extends THREE.Object3D {
 		this.geometry.setAttribute(
 			'startTime',
 			new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT), 1).setUsage(
-				THREE.DynamicReadUsage
+				THREE.DynamicDrawUsage
 			)
 		);
 		this.geometry.setAttribute(
 			'size',
 			new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT), 1).setUsage(
-				THREE.DynamicReadUsage
+				THREE.DynamicDrawUsage
 			)
 		);
 		this.geometry.setAttribute(
 			'lifeTime',
 			new THREE.BufferAttribute(new Float32Array(this.PARTICLE_COUNT), 1).setUsage(
-				THREE.DynamicReadUsage
+				THREE.DynamicDrawUsage
 			)
 		);
 
@@ -350,7 +352,7 @@ export default class GPUParticleSystem extends THREE.Object3D {
 		positionStartAttribute.setXYZ(
 			i,
 			position.x + this.random() * positionRandomness,
-			position.y,
+			position.y + this.random() * positionRandomness,
 			position.z + this.random() * positionRandomness
 		);
 		accelerationAttribute.setXYZ(i, acceleration.x, acceleration.y, acceleration.z);

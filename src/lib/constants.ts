@@ -13,6 +13,14 @@ export const componentColors = {
 	O3: '#316C90'
 };
 
+export const componentNames = {
+	PM10: "PM10",
+	PM25: 'PM2.5',
+	SO2: 'SO<sub>2</sub>',
+	NO2: 'NO<sub>2</sub>',
+	O3: 'O<sub>3</sub>'
+};
+
 export const targets = {
 		//Table 3.6 p.88
 		PM25: {

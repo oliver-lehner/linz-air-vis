@@ -38,7 +38,7 @@ export function vectorFromDegreesAndVelocity(deg: number, v: number, multiplier?
 	const y = Math.sin(rad);
 	let calcDeg = MathUtils.radToDeg(Math.atan2(x, y));
 	const vec = new Vector3(x, 0, y);
-	console.log(deg, vec, calcDeg);
+	//console.log(deg, vec, calcDeg);
 	return vec.multiplyScalar(v * (multiplier > 0 ? multiplier : 0.1));
 }
 
@@ -46,10 +46,18 @@ export function getLatest(array: Measurement[]): Measurement {
 	return array[array.length - 1];
 }
 
+export function getAlarmColor(component: string, value: number): string {
+	const { interimTargets, AQG } = targets[component];
+	if(value > AQG){
+		if(value > interimTargets[0])
+		return ''
+	}
+	
+}
 
 export function calcSeverity(component: string, value: number): number {
 	const { interimTargets, AQG } = targets[component];
-	const severity = scaleLog().domain([0.01, AQG, interimTargets[0]]).range([0, 100, 2000]);
+	const severity = scaleLog().domain([0.01, AQG, interimTargets[0]]).range([0, 5, 200]);
 	//console.log(component, severity(value));
 	return severity(value);
 }

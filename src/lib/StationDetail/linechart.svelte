@@ -1,12 +1,17 @@
 <script lang="ts">
 	import { extent, scaleLinear, mean, max as maximum } from 'd3';
-	import { targets, componentColors } from '$lib/constants';
+	import { targets, componentColors, componentNames } from '$lib/constants';
+import { tweened } from 'svelte/motion';
+import { cubicOut } from 'svelte/easing';
 
+	
 	export let data: Measurement[], component: string;
 	const values = Object.values(data).map((value) => value.value);
 
 	const width = 400;
 	const height = 300;
+	export let large = false;
+	$: large;
 
 	const xStep = width / values.length;
 	const aqg = targets[component]?.AQG;
@@ -25,7 +30,7 @@
 	};
 </script>
 
-<h2>{component}</h2>
+<h3 on:click={()=>large=!large}>{@html componentNames[component]}</h3>
 <svg
 	class="graph"
 	viewBox={`0 0 ${width} ${height}`}
@@ -36,6 +41,7 @@
 	<g>
 		<line x1="0" y1="0" x2="0" y2={height} stroke="white" />
 		<line x1="0" y1={height} x2={width} y2={height} stroke="white" />
+		{#if large}
 		<text class="label-right" x="0" y={height}>0</text>
     <text class="label-right" x="0" y={height-aqgScaled}>{aqg}</text>
 		<text class="label-right" x="0" y={height-scale(max)}>{max.toFixed(1)}</text>
@@ -43,6 +49,7 @@
 		<text class="label-center hanging" x={width} y={height}
 			>{getFormattedTime(data[data.length - 1].time)}</text
 		>
+		{/if}
 	</g>
 	<g>
 		<polyline

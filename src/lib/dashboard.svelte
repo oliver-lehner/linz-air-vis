@@ -1,49 +1,44 @@
 <script lang="ts">
-	import Compass from '$lib/compass.svelte';
-  import {getLatest} from '$lib/utils';
-	import {componentColors, stationNames} from '$lib/constants';
-	import {currentStation} from '$lib/stores'
+	import { getLatest } from '$lib/utils';
+	import { componentColors, componentNames, stationNames } from '$lib/constants';
+	import { currentStation } from '$lib/stores';
 
 	export let data: AirData;
-
 </script>
 
 <div class="container">
 	{#if data}
-	{#each Object.entries(data) as [stationKey, stationValues]}
-		<div class="cell">
-			<h2 on:click={()=>$currentStation = stationKey}>{stationNames[stationKey]}</h2>
-      <p></p>
-			<div class="components">
-				{#each Object.entries(stationValues) as [componentKey, componentValues]}
-					{#if componentKey != 'WIR' && componentKey != 'WIV' && componentValues.hmw.length > 0}
-						<div style={`background-color: ${componentColors[componentKey]}`}>
-							<p>{componentKey}</p>
-								<p>{getLatest(componentValues.hmw).value.toFixed(2)}</p>
-						</div>
-					{/if}
-				{/each}
-				<div class="compass-container">
-					<Compass orientation={getLatest(stationValues.WIR.hmw).value} />
-          <p>{((getLatest(stationValues.WIV.hmw).value)*3.6).toFixed(1)+' km/h'}</p>
+		{#each Object.entries(data) as [stationKey, stationValues]}
+			<div class="cell">
+				<h2 on:click={() => ($currentStation = stationKey)}>{stationNames[stationKey]}</h2>
+				<p />
+				<div class="components">
+					{#each Object.entries(stationValues) as [componentKey, componentValues]}
+						{#if componentKey != 'WIR' && componentKey != 'WIV' && componentValues.hmw.length > 0}
+							<div style={`background-color: ${componentColors[componentKey]}`}>
+								<p>{@html componentNames[componentKey]}</p>
+								<p style={`background-color: ${'red'}`}>{getLatest(componentValues.hmw).value.toFixed(1)}</p>
+							</div>
+						{/if}
+					{/each}
 				</div>
 			</div>
-		</div>
-	{/each}
+		{/each}
 	{/if}
 </div>
 
 <style>
 	.container {
 		position: absolute;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(10em, 2fr));
+		gap: 0.5em;
 		box-sizing: border-box;
-		width:100%;
+		width: 100%;
 		padding: 0.5em;
 		background: var(--dark-gray);
 		border: 2px solid var(--green);
-		display: grid;
-		grid-template-columns: 50% 50%;
-		gap: 0.5em;
+
 	}
 
 	.container h2,
@@ -59,30 +54,25 @@
 
 	.components {
 		display: flex;
-		flex-direction: row;
 		gap: 0.2em;
+		align-items: stretch;
 	}
 
 	.components p {
 		font-size: 0.6em;
+		white-space: nowrap;
 		text-align: center;
+		line-height: 1.5;
+		border-radius: 0.1em;
+
 	}
+
 
 	.components > div {
 		overflow: hidden;
 		border-radius: 0.1em;
-		padding: 0 0.2em;
+		padding: 0.1em 0.2em;
 	}
 
-	.compass-container {
-		display:flex;
-		flex-direction: row;
-		align-items: center;
-		width:4em;
-	}
 
-	.compass-container > p {
-		text-align: left;
-		padding-left:0.5em;
-	}
 </style>
