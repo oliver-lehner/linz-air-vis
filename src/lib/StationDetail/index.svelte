@@ -54,13 +54,14 @@
 <style>
 	.station-container {
 		position: absolute;
+		display:flex;
+		flex-direction: column;
 		bottom: 0;
 		padding: 0 5%;
 		box-sizing: border-box;
 		width: 100%;
-		max-height: 30%;
-		overflow: scroll;
-		background: var(--dark-gray);
+		height: 30vh;
+		background-color: transparent;
 		color: var(--yellow);
 	}
 
@@ -74,13 +75,17 @@
 		align-self: flex-start;
 	}
 	.charts {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(8em, 1fr));
+		display: flex;
 		gap: 0.5em;
+		width:100%;
+		overflow-x: scroll;
+		scroll-snap-type: x proximity;
 	}
 
 	.chart-container {
-		padding-top: 0.5em;
+		background: var(--dark-gray);
+		min-width:90vw;
+		scroll-snap-align: start;
 	}
 
 	.large {

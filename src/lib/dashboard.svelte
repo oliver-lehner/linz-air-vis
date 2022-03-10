@@ -29,12 +29,14 @@
 
 <style>
 	.container {
-		position: absolute;
+	position: absolute;
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(10em, 2fr));
 		gap: 0.5em;
 		box-sizing: border-box;
 		width: 100%;
+		max-height:20vh;
+		overflow:scroll;
 		padding: 0.5em;
 		background: var(--dark-gray);
 		border: 2px solid var(--green);

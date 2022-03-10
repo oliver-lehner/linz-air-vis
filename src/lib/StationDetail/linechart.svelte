@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { extent, scaleLinear, mean, max as maximum } from 'd3';
 	import { targets, componentColors, componentNames } from '$lib/constants';
-import { tweened } from 'svelte/motion';
-import { cubicOut } from 'svelte/easing';
+	import { tweened } from 'svelte/motion';
+	import { cubicOut } from 'svelte/easing';
 
-	
 	export let data: Measurement[], component: string;
 	const values = Object.values(data).map((value) => value.value);
 
@@ -16,7 +15,6 @@ import { cubicOut } from 'svelte/easing';
 	const xStep = width / values.length;
 	const aqg = targets[component]?.AQG;
 	const max = maximum(values);
-
 
 	const scale = scaleLinear()
 		.domain([0, max > aqg ? max : aqg])
@@ -30,7 +28,7 @@ import { cubicOut } from 'svelte/easing';
 	};
 </script>
 
-<h3 on:click={()=>large=!large}>{@html componentNames[component]}</h3>
+<h3 on:click={() => (large = !large)}>{@html componentNames[component]}</h3>
 <svg
 	class="graph"
 	viewBox={`0 0 ${width} ${height}`}
@@ -42,13 +40,13 @@ import { cubicOut } from 'svelte/easing';
 		<line x1="0" y1="0" x2="0" y2={height} stroke="white" />
 		<line x1="0" y1={height} x2={width} y2={height} stroke="white" />
 		{#if large}
-		<text class="label-right" x="0" y={height}>0</text>
-    <text class="label-right" x="0" y={height-aqgScaled}>{aqg}</text>
-		<text class="label-right" x="0" y={height-scale(max)}>{max.toFixed(1)}</text>
-		<text class="label-center hanging" x={0} y={height}>{getFormattedTime(data[0].time)}</text>
-		<text class="label-center hanging" x={width} y={height}
-			>{getFormattedTime(data[data.length - 1].time)}</text
-		>
+			<text class="label-right" x="0" y={height}>0</text>
+			<text class="label-right" x="0" y={height - aqgScaled}>{aqg}</text>
+			<text class="label-right" x="0" y={height - scale(max)}>{max.toFixed(1)}</text>
+			<text class="label-center hanging" x={0} y={height}>{getFormattedTime(data[0].time)}</text>
+			<text class="label-center hanging" x={width} y={height}
+				>{getFormattedTime(data[data.length - 1].time)}</text
+			>
 		{/if}
 	</g>
 	<g>
@@ -83,12 +81,12 @@ import { cubicOut } from 'svelte/easing';
 
 <style>
 	svg {
-		overflow: visible;
+		max-height: 80%;
 	}
 
 	.label-right {
 		text-anchor: end;
-    dominant-baseline: middle;
+		dominant-baseline: middle;
 	}
 
 	.label-center {
@@ -98,5 +96,4 @@ import { cubicOut } from 'svelte/easing';
 	.hanging {
 		dominant-baseline: hanging;
 	}
-
 </style>

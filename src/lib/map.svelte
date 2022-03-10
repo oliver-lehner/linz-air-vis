@@ -5,7 +5,7 @@
 		OrbitControls,
 		DirectionalLight,
 		PointLight,
-    SpotLight,
+		SpotLight,
 		Mesh,
 		GLTF,
 		HemisphereLight
@@ -18,7 +18,7 @@
 		MeshBasicMaterial,
 		Color,
 		BoxBufferGeometry,
-		BackSide,
+		BackSide
 	} from 'three';
 
 	import {
@@ -29,9 +29,10 @@
 		calcSeverity
 	} from '$lib/utils';
 
-	import { currentStation } from '$lib/stores';
+	import { currentStation, camPos, poi } from '$lib/stores';
 
 	import { componentColors } from '$lib/constants';
+
 	//import { onDestroy, onMount } from 'svelte';
 	import { spring } from 'svelte/motion';
 
@@ -50,11 +51,9 @@
 	let map: GLTF; //, animations: AnimationClip[], mixer: AnimationMixer;
 	let stationGeometry: LuftiData = <LuftiData>{};
 
-	const poi = spring({ x: 0, y: 0, z: 0 }, { stiffness: 0.2, damping: 0.5 });
-	const camPos = spring({ x: 0, y: 2, z: 5 });
+
 
 	$: setCamera($currentStation);
-	//$: currentStationData = data[$currentStation];
 
 	const particleAppearance = {
 		PM10: { color: new Color(componentColors.PM10), size: 15 },
@@ -79,62 +78,62 @@
 				$poi = pos;
 				$camPos = { x: pos.x + 2, y: pos.y + 2, z: pos.z + 2 };
 			}
+		} else {
+			$camPos = { x: 0, y: 10, z: 0 };
+			$poi = { x: 0, y: 0, z: -1 };
 		}
 	}
 </script>
 
-<Canvas>
-	<Mesh
-		geometry={new BoxBufferGeometry(20, 20, 20)}
-		material={new MeshStandardMaterial({ color: '#2a2e33', side: BackSide })}
-	/>
-	<GLTF url={'./lufti_scene.glb'} on:load={handleModelLoad} />
-	<!---bind:animations /--->
 
-	{#if Object.keys(stationGeometry).length > 0}
-		{#each Object.entries(stationGeometry) as [key, value]}
-			<Mesh
-				geometry={boxGeometryFromBoundingBox(value.boundingBox)}
-				material={new MeshStandardMaterial({ color: 'red' })}
-				position={value.position}
-				scale={value.scale}
-				rotation={value.rotation}
-				visible={false}
-				interactive={true}
-				on:pointerdown={() => {
-					/* animations.forEach(function (clip) {
+	<Canvas>
+		<GLTF url={'./lufti_scene.glb'} on:load={handleModelLoad} />
+		<!---bind:animations /--->
+
+		{#if Object.keys(stationGeometry).length > 0}
+			{#each Object.entries(stationGeometry) as [key, value]}
+				<Mesh
+					geometry={boxGeometryFromBoundingBox(value.boundingBox)}
+					material={new MeshStandardMaterial({ color: 'red' })}
+					position={value.position}
+					scale={value.scale}
+					rotation={value.rotation}
+					visible={false}
+					interactive={true}
+					on:pointerdown={() => {
+						/* animations.forEach(function (clip) {
 							console.log(clip.name);
 							mixer.clipAction(clip).play();
 						}); */
-					$currentStation = key;
-				}}
-			/>
-			{#each Object.entries(data[key]) as [componentKey, componentValue], index}
-				{#if componentKey != 'WIV' && componentKey != 'WIR' && componentValue.hmw.length > 0}
-					<Particles
-						endColor={particleAppearance[componentKey].color}
-            baseColor={new Color('black')}
-						size={particleAppearance[componentKey].size}
-						maxParticles={50000}
-            fadeOut={1}
-						particleSpriteTexPath="./textures/rhcp.png"
-            positionRandomness = {0.5}
-						position={{
-							x: value.position.x,
-							y: value.position.y + index * 0.1,
-							z: value.position.z
-						}}
-						baseVelocity={vectorFromDegreesAndVelocity(
-							270 + getLatest(data[key]['WIR'].hmw).value,
-							getLatest(data[key]['WIV'].hmw).value,
-							0.2
-						)}
-						spawnRate={calcSeverity(componentKey, getLatest(componentValue.hmw).value)}
-					/>
-				{/if}
+						$currentStation = key;
+					}}
+				/>
+				{#each Object.entries(data[key]) as [componentKey, componentValue], index}
+					{#if componentKey != 'WIV' && componentKey != 'WIR' && componentValue.hmw.length > 0}
+						<Particles
+							endColor={particleAppearance[componentKey].color}
+							baseColor={new Color('black')}
+							size={particleAppearance[componentKey].size}
+							maxParticles={50000}
+							fadeOut={1}
+							particleSpriteTexPath="./textures/rhcp.png"
+							positionRandomness={0.5}
+							position={{
+								x: value.position.x,
+								y: value.position.y + index * 0.1,
+								z: value.position.z
+							}}
+							baseVelocity={vectorFromDegreesAndVelocity(
+								270 + getLatest(data[key]['WIR'].hmw).value,
+								getLatest(data[key]['WIV'].hmw).value,
+								0.2
+							)}
+							spawnRate={calcSeverity(componentKey, getLatest(componentValue.hmw).value)}
+						/>
+					{/if}
+				{/each}
 			{/each}
-		{/each}
-		<!-- 									
+			<!-- 									
 			vectorFromDegreesAndVelocity(
 								90 + getLatest(data[key]['WIR'].hmw).value,
 								getLatest(data[key]['WIV'].hmw).value
@@ -157,12 +156,32 @@ calcSeverity('PM25', getLatest(data['S415']['PM25'].hmw).value)
 							)}
 							spawnRate={1000}
 						/> -->
-	{/if}
+		{/if}
 
-	<PerspectiveCamera position={$camPos} lookAt={$poi}>
-	</PerspectiveCamera>
-  <SpotLight position={{x:$poi.x+0.4,y:$poi.y +1, z:$poi.z+0.4}} target={$poi} penumbra={0.6} angle={0.5}/>
-  <SpotLight position={{x:$poi.x,y:$poi.y +1, z:$poi.z}} target={$poi} penumbra={0.4} angle={0.3}/>
-  <SpotLight position={{x:$poi.x-0.1,y:$poi.y +0.7, z:$poi.z+0.5}} target={$poi} penumbra={0.8} angle={0.8}/>
-	<HemisphereLight skyColor={'white'} groundColor={'#ac844c'} intensity={1} />
-</Canvas>
+		<PerspectiveCamera position={$camPos} lookAt={$poi} />
+		{#if $currentStation}
+			<SpotLight
+				position={{ x: $poi.x + 0.4, y: $poi.y + 1, z: $poi.z + 0.4 }}
+				target={$poi}
+				penumbra={0.6}
+				angle={0.5}
+			/>
+			<SpotLight
+				position={{ x: $poi.x, y: $poi.y + 1, z: $poi.z }}
+				target={$poi}
+				penumbra={0.4}
+				angle={0.3}
+			/>
+			<SpotLight
+				position={{ x: $poi.x - 0.1, y: $poi.y + 0.7, z: $poi.z + 0.5 }}
+				target={$poi}
+				penumbra={0.8}
+				angle={0.8}
+			/>
+		{:else}{/if}
+		<DirectionalLight />
+		<HemisphereLight skyColor={'white'} groundColor={'#ac844c'} intensity={1} />
+	</Canvas>
+
+
+

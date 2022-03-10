@@ -30,10 +30,10 @@
 
 <div class="container">
 	<Dashboard {data} />
-	<Map {data}/>
 	{#if $currentStation}
-		<StationDetail data = {data[$currentStation]} />
+		<StationDetail data={data[$currentStation]} />
 	{/if}
+	<Map {data} />
 </div>
 
 <style>

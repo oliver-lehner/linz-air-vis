@@ -61,9 +61,39 @@ async function getStationDataFromCache() {
 	return undefined;
 }
 
+/**
+ * Returns seconds until next API update (full or half hour)
+ * @returns {number} 
+ */
+
+function calcCacheTime():number {
+	const current = new Date();
+	let nextUpdate: Date;
+	if (current.getMinutes() < 30) {
+		nextUpdate = new Date(
+			current.getFullYear(),
+			current.getMonth(),
+			current.getDate(),
+			current.getHours(),
+			30
+		);
+	} else {
+		let temp = new Date(
+			current.getFullYear(),
+			current.getMonth(),
+			current.getDate(),
+			current.getHours(),
+			0
+		);
+		nextUpdate = new Date(temp.getTime() + 60 * 60 * 1000);
+	}
+	console.log(current, nextUpdate)
+	return Math.floor((nextUpdate.getTime() - current.getTime()) / 1000);
+}
+
 async function cacheStationData(data) {
 	try {
-		await redis.set('data', JSON.stringify(data), 'EX', 24 * 60 * 60);
+		await redis.set('data', JSON.stringify(data), 'EX', calcCacheTime());
 	} catch (e) {
 		console.error('Unable to cache', e);
 	}
@@ -93,13 +123,12 @@ function extract(values): StationData {
 	componentCodes.forEach((component) => {
 		const componentData = values.filter((sample) => sample.komponente == component);
 		if (componentData) {
-			const unit = componentData[0]?.komponente == ('WIV'||'WIR')
-				? componentData[0]?.einheit
-				: 'µg/m³';
+			const unit =
+				componentData[0]?.komponente == ('WIV' || 'WIR') ? componentData[0]?.einheit : 'µg/m³';
 			const tmw = reduceSamples(componentData, 'TMW');
 			const hmw = reduceSamples(componentData, 'HMW');
 			const mw24 = reduceSamples(componentData, 'MW24');
-			data[component.substring(0,4)] = { unit, hmw, tmw, mw24 };
+			data[component.substring(0, 4)] = { unit, hmw, tmw, mw24 };
 		}
 	});
 	return data;
@@ -109,7 +138,7 @@ function reduceSamples(samples, value: string): Measurement[] {
 	return samples
 		.filter((sample) => sample.mittelwert == value)
 		.map((sample) => {
-			const multiplier = (sample.einheit == "mg/m3" ? 1000 : 1);
+			const multiplier = sample.einheit == 'mg/m3' ? 1000 : 1;
 			const time = sample.zeitpunkt;
 			const value = parseFloat(sample.messwert.replace(',', '.')) * multiplier;
 			return { time, value };
