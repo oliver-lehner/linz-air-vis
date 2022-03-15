@@ -15,7 +15,7 @@
 		}).length;
 	};
 
-	console.log('COUNT: ', countComponents(data));
+	//$:console.log($currentStation)
 
 	let large = new Array<boolean>(countComponents(data)).fill(false);
 </script>
@@ -31,16 +31,7 @@
 		{#each Object.entries(data) as [componentKey, componentValue], index}
 			{#if componentValue.hmw.length > 0 && !componentKey.startsWith('WI')}
 				{#key large}
-					<div
-						in:fade
-						class="chart-container"
-						class:large={large[index]}
-						style:display={large.findIndex((value) => value == true) > -1 &&
-						index != large.findIndex((value) => value == true)
-							? 'none'
-							: 'initial'}
-						on:click={() => (large[index] = !large[index])}
-					>
+					<div in:fade class="chart-container">
 						{#key $currentStation}
 							<Linechart component={componentKey} data={componentValue.hmw} large={large[index]} />
 						{/key}
@@ -54,7 +45,7 @@
 <style>
 	.station-container {
 		position: absolute;
-		display:flex;
+		display: flex;
 		flex-direction: column;
 		bottom: 0;
 		padding: 0 5%;
@@ -77,18 +68,13 @@
 	.charts {
 		display: flex;
 		gap: 0.5em;
-		width:100%;
-		overflow-x: scroll;
+		overflow-x: auto;
 		scroll-snap-type: x proximity;
 	}
 
 	.chart-container {
 		background: var(--dark-gray);
-		min-width:90vw;
-		scroll-snap-align: start;
-	}
-
-	.large {
-		grid-column: 1 / span 2;
+		min-width: 90vw;
+		scroll-snap-align: center;
 	}
 </style>

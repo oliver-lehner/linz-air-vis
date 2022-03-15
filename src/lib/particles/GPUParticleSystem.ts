@@ -8,6 +8,7 @@ const GPUParticleShader = {
         uniform bool reverseTime;
         uniform float fadeIn;
         uniform float fadeOut;
+				uniform vec4 origin;
 
         attribute vec3 positionStart;
         attribute float startTime;
@@ -27,6 +28,7 @@ const GPUParticleShader = {
             vColor = vec4( color, 1.0 );
             vEndColor = vec4( endColor, 1.0);
             vec3 newPosition;
+
             float timeElapsed = uTime - startTime;
             if(reverseTime) timeElapsed = lifeTime - timeElapsed;
             if(timeElapsed < fadeIn) {
@@ -38,15 +40,18 @@ const GPUParticleShader = {
             if(timeElapsed > (lifeTime - fadeOut)) {
                 alpha = 1.0 - (timeElapsed - (lifeTime-fadeOut))/fadeOut;
             }
-            
-            lifeLeft = 1.0 - ( timeElapsed / lifeTime );
-						gl_PointSize = ( uScale * size );
+
             //gl_PointSize = ( uScale * size ) * lifeLeft;
             newPosition = positionStart 
                 + (velocity * timeElapsed)
                 + (acceleration * 0.5 * timeElapsed * timeElapsed)
                 ;
 						newPosition = newPosition*vec3(1,1.f+(sin(uTime)*0.1),1);
+												vec4 mvPosition = modelViewMatrix * vec4(newPosition, 1.0);
+						float cameraDist = distance(mvPosition, origin);
+            
+            lifeLeft = 1.0 - ( timeElapsed / lifeTime );
+						gl_PointSize = ( uScale * size )/cameraDist;
             if (lifeLeft < 0.0) { 
                 lifeLeft = 0.0; 
                 gl_PointSize = 0.;
@@ -358,7 +363,12 @@ export default class GPUParticleSystem extends THREE.Object3D {
 		accelerationAttribute.setXYZ(i, acceleration.x, acceleration.y, acceleration.z);
 		colorAttribute.setXYZ(i, color.r, color.g, color.b);
 		endcolorAttribute.setXYZ(i, endColor.r, endColor.g, endColor.b);
-		velocityAttribute.setXYZ(i, velocity.x, velocity.y + this.random() * velocityRandomness, velocity.z);
+		velocityAttribute.setXYZ(
+			i,
+			velocity.x,
+			velocity.y + this.random() * velocityRandomness,
+			velocity.z
+		);
 
 		//size, lifetime and starttime
 		sizeAttribute.setX(i, size + this.random() * sizeRandomness);
@@ -377,4 +387,7 @@ export default class GPUParticleSystem extends THREE.Object3D {
 		this.particleUpdate = true;
 	}
 
+	getCount() {
+		return this.count;
+	}
 }

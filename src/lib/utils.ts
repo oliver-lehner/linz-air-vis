@@ -57,7 +57,7 @@ export function getAlarmColor(component: string, value: number): string {
 
 export function calcSeverity(component: string, value: number): number {
 	const { interimTargets, AQG } = targets[component];
-	const severity = scaleLog().domain([0.01, AQG, interimTargets[0]]).range([0, 5, 200]);
+	const severity = scaleLog().domain([0.01, AQG, interimTargets[0]]).range([0, 100, 2000]);
 	//console.log(component, severity(value));
 	return severity(value);
 }

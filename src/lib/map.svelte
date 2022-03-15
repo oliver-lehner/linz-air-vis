@@ -18,7 +18,7 @@
 		MeshBasicMaterial,
 		Color,
 		BoxBufferGeometry,
-		BackSide
+		BackSide, Vector3
 	} from 'three';
 
 	import {
@@ -56,11 +56,11 @@
 	$: setCamera($currentStation);
 
 	const particleAppearance = {
-		PM10: { color: new Color(componentColors.PM10), size: 15 },
-		PM25: { color: new Color(componentColors.PM25), size: 10 },
-		SO2: { color: new Color(componentColors.SO2), size: 5 },
-		NO2: { color: new Color(componentColors.NO2), size: 5 },
-		O3: { color: new Color(componentColors.O3), size: 5 }
+		PM10: { color: new Color(componentColors.PM10), size: 40 },
+		PM25: { color: new Color(componentColors.PM25), size: 30 },
+		SO2: { color: new Color(componentColors.SO2), size: 20 },
+		NO2: { color: new Color(componentColors.NO2), size: 20 },
+		O3: { color: new Color(componentColors.O3), size:20 }
 	};
 
 	function handleModelLoad(e) {
@@ -112,12 +112,15 @@
 					{#if componentKey != 'WIV' && componentKey != 'WIR' && componentValue.hmw.length > 0}
 						<Particles
 							endColor={particleAppearance[componentKey].color}
-							baseColor={new Color('black')}
+							baseColor={particleAppearance[componentKey].color}
 							size={particleAppearance[componentKey].size}
 							maxParticles={50000}
 							fadeOut={1}
+              fadeIn={1}
+							reverseTime={true}
 							particleSpriteTexPath="./textures/rhcp.png"
 							positionRandomness={0.5}
+							velocityRandomness={0.1}
 							position={{
 								x: value.position.x,
 								y: value.position.y + index * 0.1,
@@ -129,6 +132,7 @@
 								0.2
 							)}
 							spawnRate={calcSeverity(componentKey, getLatest(componentValue.hmw).value)}
+							
 						/>
 					{/if}
 				{/each}
@@ -137,25 +141,23 @@
 			vectorFromDegreesAndVelocity(
 								90 + getLatest(data[key]['WIR'].hmw).value,
 								getLatest(data[key]['WIV'].hmw).value
-							)
+								calcSeverity('PM25', getLatest(data['S415']['PM25'].hmw).value)
+							)--->
 			
-			<Particles
-calcSeverity('PM25', getLatest(data['S415']['PM25'].hmw).value)
+<!-- 			<Particles
+
 							baseColor={particleAppearance['PM25'].color}
 							size={particleAppearance['PM25'].size}
 							maxParticles={1000}
-							particleSpriteTexPath="./textures/swirly.png"
+							particleSpriteTexPath="./textures/rhcp.png"
 							position={{
 								x: stationGeometry.S415.position.x,
 								y: stationGeometry.S415.position.y + 0.1,
 								z: stationGeometry.S415.position.z
 							}}
-							baseVelocity={vectorFromDegreesAndVelocity(
-								getLatest(data['S415']['WIR'].hmw).value,
-								getLatest(data['S415']['WIV'].hmw).value
-							)}
-							spawnRate={1000}
-						/> -->
+							baseVelocity={new Vector3(0.1,0,0)}
+							spawnRate={10}
+						/> --> 
 		{/if}
 
 		<PerspectiveCamera position={$camPos} lookAt={$poi} />
