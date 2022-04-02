@@ -20,19 +20,14 @@
 </script>
 
 <script lang="ts">
-	import Dashboard from '$lib/dashboard.svelte';
+	import UI from '$lib/ui/index.svelte';
 	import Map from '$lib/map.svelte';
-	import StationDetail from '$lib/StationDetail/index.svelte';
-	import { currentStation } from '$lib/stores';
 
 	export let data: AirData;
 </script>
 
 <div class="container">
-	<Dashboard {data} />
-	{#if $currentStation}
-		<StationDetail data={data[$currentStation]} />
-	{/if}
+	<UI {data}/>
 	<Map {data} />
 </div>
 

@@ -80,9 +80,11 @@
 			}
 		} else {
 			$camPos = { x: 0, y: 10, z: 0 };
-			$poi = { x: 0, y: 0, z: -1 };
+			$poi = { x: 0, y:0, z:0 };
 		}
 	}
+
+	
 </script>
 
 
@@ -182,7 +184,7 @@
 			/>
 		{:else}{/if}
 		<DirectionalLight />
-		<HemisphereLight skyColor={'white'} groundColor={'#ac844c'} intensity={1} />
+		<HemisphereLight skyColor={'white'} groundColor={'#ac844c'} intensity={0.5} />
 	</Canvas>
 
 

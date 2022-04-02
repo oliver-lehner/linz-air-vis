@@ -9,8 +9,6 @@
 
 	const width = 400;
 	const height = 300;
-	export let large = false;
-	$: large;
 
 	const xStep = width / values.length;
 	const aqg = targets[component]?.AQG;
@@ -28,10 +26,10 @@
 	};
 </script>
 
-<h3 on:click={() => (large = !large)}>{@html componentNames[component]}</h3>
+<h3>{@html componentNames[component]}</h3>
 <svg
 	class="graph"
-	viewBox={`0 0 ${width} ${height}`}
+	viewBox={`0 0 ${width}+2 ${height}+2`}
 	version="1.1"
 	xmlns:xlink="http://www.w3.org/1999/xlink"
 	xmlns="http://www.w3.org/2000/svg"
@@ -39,7 +37,6 @@
 	<g>
 		<line x1="0" y1="0" x2="0" y2={height} stroke="white" />
 		<line x1="0" y1={height} x2={width} y2={height} stroke="white" />
-		{#if large}
 			<text class="label-right" x="0" y={height}>0</text>
 			<text class="label-right" x="0" y={height - aqgScaled}>{aqg}</text>
 			<text class="label-right" x="0" y={height - scale(max)}>{max.toFixed(1)}</text>
@@ -47,7 +44,6 @@
 			<text class="label-center hanging" x={width} y={height}
 				>{getFormattedTime(data[data.length - 1].time)}</text
 			>
-		{/if}
 	</g>
 	<g>
 		<polyline
@@ -81,7 +77,8 @@
 
 <style>
 	svg {
-		max-height: 80%;
+		width:100%;
+
 	}
 
 	.label-right {

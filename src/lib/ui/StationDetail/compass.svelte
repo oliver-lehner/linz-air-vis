@@ -40,7 +40,7 @@
 	svg {
 		color: var(--yellow);
 		width: 100%;
-		height:2em;
+		height: 2em;
 	}
 	.st0 {
 		fill: currentColor;
@@ -54,13 +54,15 @@
 
 	.compass-container {
 		display: flex;
-		flex-direction: row;
+		flex-direction: column;
 		align-items: center;
+		justify-content: center;
+		gap:0.2em;
+		grid-area: compass;
 	}
 
 	.compass-container > p {
-		text-align: left;
-		font-size:0.8em;
-		flex-grow: 2;
+		text-align: center;
+		font-size: 0.6em;
 	}
 </style>
