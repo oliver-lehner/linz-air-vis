@@ -1,3 +1,7 @@
+linz-air-vis war ursprünglich ein Kennenlernprojekt für Svelte Cubed. Es ist eine 3D Visualisierung der Luftgüte in Linz.
+
+
+
 # create-svelte
 
 Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte);
