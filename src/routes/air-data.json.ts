@@ -5,6 +5,12 @@ const url = 'http://www2.land-oberoesterreich.gv.at/imm/jaxrs/messwerte/json';
 const stationCodes = ['S431', 'S184', 'S415', 'S416'];
 const componentCodes = ['PM10kont', 'PM25kont', 'SO2', 'NO2', 'O3', 'WIV', 'WIR'];
 
+function isDST(d: Date): boolean {
+	const jan = new Date(d.getFullYear(), 0, 1).getTimezoneOffset();
+	const jul = new Date(d.getFullYear(), 6, 1).getTimezoneOffset();
+	return Math.max(jan, jul) !== d.getTimezoneOffset();
+}
+
 export const get: RequestHandler = async function () {
 	const data = await getStationDataFromCache();
 
@@ -63,10 +69,12 @@ async function getStationDataFromCache() {
 
 /**
  * Returns seconds until next API update (full or half hour)
- * @returns {number} 
+ * @returns {number}
  */
 
-function calcCacheTime():number {
+function calcCacheTime(): number {
+	/*unfortunately this elegant code doesn't fit the purpose because updates are not punctual 	
+
 	const current = new Date();
 	let nextUpdate: Date;
 	if (current.getMinutes() < 30) {
@@ -87,8 +95,9 @@ function calcCacheTime():number {
 		);
 		nextUpdate = new Date(temp.getTime() + 60 * 60 * 1000);
 	}
-	console.log(current, nextUpdate)
-	return Math.floor((nextUpdate.getTime() - current.getTime()) / 1000);
+	console.log(current, nextUpdate);
+	return Math.floor((nextUpdate.getTime() - current.getTime()) / 1000); */
+	return 300;
 }
 
 async function cacheStationData(data) {
@@ -139,7 +148,10 @@ function reduceSamples(samples, value: string): Measurement[] {
 		.filter((sample) => sample.mittelwert == value)
 		.map((sample) => {
 			const multiplier = sample.einheit == 'mg/m3' ? 1000 : 1;
-			const time = sample.zeitpunkt;
+			//somehow the API does not account for DST and timestamps are 1hr behind
+			const time = isDST(new Date(sample.zeitpunkt))
+				? sample.zeitpunkt + 3600000
+				: sample.zeitpunkt;
 			const value = parseFloat(sample.messwert.replace(',', '.')) * multiplier;
 			return { time, value };
 		});
