@@ -1,4 +1,6 @@
-linz-air-vis war ursprünglich ein Kennenlernprojekt für Svelte Cubed. Es ist eine 3D Visualisierung der Luftgüte in Linz.
+linz-air-vis ist eine 3D Visualisierung der Luftgüte in Linz und war ursprünglich ein Kennenlernprojekt für Svelte Cubed. 
+
+[Work in Progress - automatischer Build auf Vercel](https://linz-air-vis.vercel.app/)
 
 
 
